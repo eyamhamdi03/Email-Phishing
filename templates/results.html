@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block head %}
+  <title>Analysis Result</title>
+{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto mt-10 card shadow-md p-6 bg-base-100">
+  <h2 class="text-2xl font-bold mb-4 text-primary">Analysis Report</h2>
+
+  <div class="mb-4">
+    <p><strong>Status:</strong>
+      {% if result == 'phishing' %}
+        <span class="badge badge-error">Phishing</span>
+      {% else %}
+        <span class="badge badge-success">Legitimate</span>
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="space-y-2">
+    <p><strong>Sender Email:</strong> {{ email.senderMail }}</p>
+    <p><strong>Subject:</strong> {{ email.subject or 'N/A' }}</p>
+    <p><strong>Body:</strong></p>
+    <p class="bg-base-200 p-3 rounded">{{ email.emailBody }}</p>
+    <p><strong>AI Explanation:</strong> {{ explanation }}</p>
+  </div>
+
+  <div class="mt-6 text-center">
+    <a href="/" class="btn btn-outline">Analyze Another Email</a>
+  </div>
+</div>
+{% endblock %}
+  

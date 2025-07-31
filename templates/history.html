@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>History</title>
+{% endblock %}
+
+{% block body %}
+
+<div class="container items-center justify-center">
+     <h1 class="text-xl font-bold flex items-center gap-2">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+       viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round"
+       stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  Email History
+</h1>
+
+    <br>
+    <ul class="list bg-base-100 rounded-box p-4 space-y-2">
+  {% for email in emails %}
+  <li>
+<details class="collapse collapse-arrow bg-base-200 shadow-none border-l-4 
+    {% if email.detection == 'legitime' %}
+        border-success
+    {% elif email.detection == 'frauduleux' %}
+        border-error
+    {% else %}
+        border-info
+    {% endif %}
+">
+<summary class="collapse-title font-medium text-md">
+  <div class="w-full flex justify-between items-center">
+    <span>{{ email.senderMail }}</span>
+    <span class="badge badge-outline badge-sm whitespace-nowrap">{{ email.date_created.strftime('%Y-%m-%d') }}</span>
+  </div>
+</summary>
+
+
+      <div class="collapse-content text-sm space-y-2">
+        <p><strong>Body:</strong> {{ email.emailBody }}</p>
+        <p><strong>subject:</strong> {{ email.subject or "N/A" }}</p>
+        <p><strong>Detection:</strong> {{ email.detection or "Not analyzed yet" }}</p>
+        <p><strong>Notes:</strong> {{ email.notes or "—" }}</p>
+        <div class="flex space-x-2 mt-4 pt-2">
+          <a href="{{ url_for('view_email', email_id=email.id) }}" class="btn btn-sm btn-primary">View</a>
+          <a href="{{ url_for('delete_email', email_id=email.id) }}" class="btn btn-sm btn-error ">Delete</a>
+        </div>
+      </div>
+    </details>
+  </li>
+  {% endfor %}
+  {% if not emails %}
+  <li class="p-4 text-center text-gray-500">No emails found.</li>
+  {% endif %}
+</ul>
+</div>
+{% endblock %}
