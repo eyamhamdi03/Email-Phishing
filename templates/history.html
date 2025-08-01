@@ -30,9 +30,25 @@
 <summary class="collapse-title font-medium text-md">
   <div class="w-full flex justify-between items-center">
     <span>{{ email.senderMail }}</span>
-    <span class="badge badge-outline badge-sm whitespace-nowrap">{{ email.date_created.strftime('%Y-%m-%d') }}</span>
+    <div class="flex gap-2 items-center">
+      <span class="badge badge-sm text-white 
+        {% if email.detection == 'legitime' %}
+          badge-success
+        {% elif email.detection == 'frauduleux' %}
+          badge-error
+        {% else %}
+          badge-info
+        {% endif %}
+      ">
+        {{ email.detection or "Unknown" }}
+      </span>
+            <span class="badge badge-outline badge-sm whitespace-nowrap">
+        {{ email.date_created.strftime('%Y-%m-%d') }}
+      </span>
+    </div>
   </div>
 </summary>
+
 
 
       <div class="collapse-content text-sm space-y-2">
@@ -41,8 +57,8 @@
         <p><strong>Detection:</strong> {{ email.detection or "Not analyzed yet" }}</p>
         <p><strong>Notes:</strong> {{ email.notes or "—" }}</p>
         <div class="flex space-x-2 mt-4 pt-2">
-          <a href="{{ url_for('view_email', email_id=email.id) }}" class="btn btn-sm btn-primary">View</a>
-          <a href="{{ url_for('delete_email', email_id=email.id) }}" class="btn btn-sm btn-error ">Delete</a>
+        <a href="{{ url_for('view_email', email_id=email.id) }}" class="btn btn-sm btn-ghost w-24 text-center">View</a>
+        <a href="{{ url_for('delete_email', email_id=email.id) }}" class="btn btn-sm btn-error w-24 text-center">Delete</a>
         </div>
       </div>
     </details>
