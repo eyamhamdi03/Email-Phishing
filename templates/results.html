@@ -1,81 +1,70 @@
 {% extends 'base.html' %}
 
 {% block head %}
-  <title>Email Analysis Result</title>
+  <title>Email Analysis Report</title>
 {% endblock %}
 
 {% block body %}
+<div class="flex justify-center py-10 px-4">
+  <div class="card bg-base-100 shadow-2xl w-full max-w-4xl p-8 space-y-8">
 
-<div class="flex justify-center p-6">
-  <div class="card bg-base-100 shadow-lg w-full max-w-4xl p-6 space-y-6">
+    <!-- Title -->
+    <div class="text-center">
+      <h2 class="text-3xl font-extrabold tracking-tight text-white">Email Fraud Detection Report</h2>
+      <p class="text-sm text-gray-400 mt-1">Detailed analysis and prediction outcome</p>
+    </div>
 
-    <h2 class="text-center text-2xl font-bold mb-2 text-white">Email Fraud Detection Report</h2>
-
-    <div class="space-y-2">
-      <h3 class="text-xl font-semibold">Original Email</h3>
-      <div class="text-sm text-gray-500">From: <span class="font-medium text-black">{{ sender }}</span></div>
+    <!-- Metadata -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-base-200 rounded-lg p-4">
+      <div><strong>From:</strong> <span class="text-white">{{ sender }}</span></div>
       {% if subject %}
-      <div class="text-sm text-gray-500">Subject: <span class="font-medium text-black">{{ subject }}</span></div>
+      <div><strong>Subject:</strong> <span class="text-white">{{ subject }}</span></div>
       {% endif %}
-      <div class="bg-base-200 p-4 rounded shadow-sm whitespace-pre-wrap">{{ body }}</div>
+      <div><strong>Contains URL:</strong> {{ 'Yes' if contains_url else 'No' }}</div>
+      <div><strong>Score:</strong> {{ probability | round(3) if probability is not none else "N/A" }}</div>
     </div>
 
-    <div class="space-y-2">
-      <h3 class="text-xl font-semibold">Summary</h3>
-
-      {% set verdict_class = 'border-l-4 pl-4' %}
-      {% set verdict_class = 'border-l-4 pl-4' %}
-{% if probability > 0.6 %}
-  {% set verdict_class = verdict_class + ' border-error' %}
-{% elif probability < 0.4 %}
-  {% set verdict_class = verdict_class + ' border-success' %}
-{% else %}
-  {% set verdict_class = verdict_class + ' border-warning' %}
-{% endif %}
-
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div class="p-3 rounded {{ verdict_class }}">
-          <strong>Prediction:</strong>
-          {{ 'Fraudulent' if is_fraud else 'Legitimate' if final_prediction == 0 else 'Suspect (manual review)' }}
-        </div>
-        <div class="p-3 rounded {{ verdict_class }}">
-          <strong>Score:</strong> {{ probability | round(3) }}
-        </div>
-        <div class="p-3 bg-base-200 rounded">
-          <strong>Contains URL:</strong> {{ 'Yes' if contains_url else 'No' }}
-        </div>
-        {% if has_attachment is defined %}
-        <div class="p-3 bg-base-200 rounded">
-          <strong>Attachment Detected:</strong> {{ 'Yes' if has_attachment else 'No' }}
-        </div>
-        {% endif %}
-      </div>
+    <!-- Verdict Section -->
+    <div class="rounded-lg p-4 {{ 
+        'bg-error/20 border-l-4 border-error text-error' if is_fraud else 
+        'bg-success/20 border-l-4 border-success text-success' if final_prediction == 0 else 
+        'bg-warning/20 border-l-4 border-warning text-warning' 
+      }}">
+      <strong>Prediction:</strong>
+      {{ 'FRAUDULEUX' if is_fraud else 'LÉGITIME' if final_prediction == 0 else 'SUSPECIOUS (manual review)' }}
     </div>
 
+    <!-- Original Email -->
+    <div>
+      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">Original Email Body</h3>
+      <div class="bg-base-200 p-4 rounded text-sm whitespace-pre-wrap text-white shadow-inner">{{ body }}</div>
+    </div>
+
+    <!-- Extracted URLs -->
     {% if urls and urls|length > 0 %}
-    <div class="space-y-2">
-      <h3 class="text-xl font-semibold">Extracted URLs</h3>
-      <ul class="list-disc list-inside text-sm">
+    <div>
+      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">🔗 Extracted URLs</h3>
+      <ul class="list-disc list-inside text-sm space-y-1">
         {% for url in urls %}
-          <li class="break-all">{{ url }}</li>
+          <li class="break-all text-white">{{ url }}</li>
         {% endfor %}
       </ul>
     </div>
     {% endif %}
 
+    <!-- Full Report -->
     {% if report %}
-    <div class="space-y-2">
-      <h3 class="text-xl font-semibold">Full Report</h3>
-      <pre class="bg-base-200 p-4 rounded text-sm whitespace-pre-wrap">{{ report }}</pre>
+    <div>
+      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2"> Detailed Report</h3>
+      <pre class="bg-base-200 p-4 rounded text-sm whitespace-pre-wrap text-white">{{ report }}</pre>
     </div>
     {% endif %}
 
-    <div class="pt-6 flex justify-center">
-      <a href="/history" class="btn btn-outline">Back to Histpry</a>
+    <!-- Back -->
+    <div class="text-center pt-4">
+      <a href="/" class="btn btn-outline btn-wide">← Back to History</a>
     </div>
 
   </div>
 </div>
-
 {% endblock %}

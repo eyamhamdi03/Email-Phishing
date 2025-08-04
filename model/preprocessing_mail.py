@@ -54,6 +54,10 @@ def text_proc(text):
 
     text = unidecode.unidecode(text)
     return text
+def detect_reply(mail):
+    if not isinstance(mail, str):
+        return 0
+    return int(bool(re.search(r'\bre\s*:', mail, re.IGNORECASE)))
 
 # ----------------------------
 # Détection de contenu suspect
@@ -180,5 +184,5 @@ def preprocess_email(subject, body):
 
     word_count = len(cleaned.split())
     length = len(full_text)
-
-    return cleaned, suspicious_flag, url_flag, attached_flag, html_flag, word_count, length, found_urls
+    reply = detect_reply(full_text)
+    return cleaned, suspicious_flag, url_flag, attached_flag, html_flag, word_count, length, found_urls , reply
