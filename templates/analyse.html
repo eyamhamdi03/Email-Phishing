@@ -6,11 +6,12 @@
 {% endblock %}
 
 {% block body %}
-<div class="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-2 px-6">
- <h2 class="text-lg rubik-mono-one-light ">Analyzing Your Email...</h2>
+<div class="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-4 px-6">
+  <h2 class="text-lg rubik-mono-one-light">Analyzing Your Email...</h2>
   <p class="text-md text-gray-500 max-w-xl">
     Please hold on while our AI model evaluates the email for phishing threats. This usually takes a few seconds.
   </p>
+
   <dotlottie-wc
     src="https://lottie.host/c8c68aea-d856-445e-b1a8-f559f9fc67de/rv8PeIXZFV.lottie"
     style="width: 600px;"
@@ -18,8 +19,17 @@
     autoplay
     loop>
   </dotlottie-wc>
-  
 
- 
+  <form id="analyzeForm" method="POST" action="/analyze">
+    <input type="hidden" name="senderMail" value="{{ sender }}">
+    <input type="hidden" name="subject" value="{{ subject }}">
+    <input type="hidden" name="emailBody" value="{{ body }}">
+  </form>
 </div>
+
+<script>
+  setTimeout(() => {
+    document.getElementById("analyzeForm").submit();
+  }, 3000);
+</script>
 {% endblock %}

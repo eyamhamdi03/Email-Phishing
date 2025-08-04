@@ -1,34 +1,81 @@
 {% extends 'base.html' %}
 
 {% block head %}
-  <title>Analysis Result</title>
+  <title>Email Analysis Result</title>
 {% endblock %}
 
 {% block body %}
-<div class="max-w-3xl mx-auto mt-10 card shadow-md p-6 bg-base-100">
-  <h2 class="text-2xl font-bold mb-4 text-primary">Analysis Report</h2>
 
-  <div class="mb-4">
-    <p><strong>Status:</strong>
-      {% if result == 'phishing' %}
-        <span class="badge badge-error">Phishing</span>
-      {% else %}
-        <span class="badge badge-success">Legitimate</span>
+<div class="flex justify-center p-6">
+  <div class="card bg-base-100 shadow-lg w-full max-w-4xl p-6 space-y-6">
+
+    <h2 class="text-center text-2xl font-bold mb-2 text-white">Email Fraud Detection Report</h2>
+
+    <div class="space-y-2">
+      <h3 class="text-xl font-semibold">Original Email</h3>
+      <div class="text-sm text-gray-500">From: <span class="font-medium text-black">{{ sender }}</span></div>
+      {% if subject %}
+      <div class="text-sm text-gray-500">Subject: <span class="font-medium text-black">{{ subject }}</span></div>
       {% endif %}
-    </p>
-  </div>
+      <div class="bg-base-200 p-4 rounded shadow-sm whitespace-pre-wrap">{{ body }}</div>
+    </div>
 
-  <div class="space-y-2">
-    <p><strong>Sender Email:</strong> {{ email.senderMail }}</p>
-    <p><strong>Subject:</strong> {{ email.subject or 'N/A' }}</p>
-    <p><strong>Body:</strong></p>
-    <p class="bg-base-200 p-3 rounded">{{ email.emailBody }}</p>
-    <p><strong>AI Explanation:</strong> {{ explanation }}</p>
-  </div>
+    <div class="space-y-2">
+      <h3 class="text-xl font-semibold">Summary</h3>
 
-  <div class="mt-6 text-center">
-    <a href="/" class="btn btn-outline">Analyze Another Email</a>
+      {% set verdict_class = 'border-l-4 pl-4' %}
+      {% set verdict_class = 'border-l-4 pl-4' %}
+{% if probability > 0.6 %}
+  {% set verdict_class = verdict_class + ' border-error' %}
+{% elif probability < 0.4 %}
+  {% set verdict_class = verdict_class + ' border-success' %}
+{% else %}
+  {% set verdict_class = verdict_class + ' border-warning' %}
+{% endif %}
+
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div class="p-3 rounded {{ verdict_class }}">
+          <strong>Prediction:</strong>
+          {{ 'Fraudulent' if is_fraud else 'Legitimate' if final_prediction == 0 else 'Suspect (manual review)' }}
+        </div>
+        <div class="p-3 rounded {{ verdict_class }}">
+          <strong>Score:</strong> {{ probability | round(3) }}
+        </div>
+        <div class="p-3 bg-base-200 rounded">
+          <strong>Contains URL:</strong> {{ 'Yes' if contains_url else 'No' }}
+        </div>
+        {% if has_attachment is defined %}
+        <div class="p-3 bg-base-200 rounded">
+          <strong>Attachment Detected:</strong> {{ 'Yes' if has_attachment else 'No' }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if urls and urls|length > 0 %}
+    <div class="space-y-2">
+      <h3 class="text-xl font-semibold">Extracted URLs</h3>
+      <ul class="list-disc list-inside text-sm">
+        {% for url in urls %}
+          <li class="break-all">{{ url }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if report %}
+    <div class="space-y-2">
+      <h3 class="text-xl font-semibold">Full Report</h3>
+      <pre class="bg-base-200 p-4 rounded text-sm whitespace-pre-wrap">{{ report }}</pre>
+    </div>
+    {% endif %}
+
+    <div class="pt-6 flex justify-center">
+      <a href="/history" class="btn btn-outline">Back to Histpry</a>
+    </div>
+
   </div>
 </div>
+
 {% endblock %}
-  

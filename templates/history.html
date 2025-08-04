@@ -19,25 +19,25 @@
   {% for email in emails %}
   <li>
 <details class="collapse collapse-arrow bg-base-200 shadow-none border-l-4 
-    {% if email.detection == 'legitime' %}
+    {% if email.detection == 'LEGITIME' %}
         border-success
-    {% elif email.detection == 'frauduleux' %}
+    {% elif email.detection == 'FRAUDULEUX' %}
         border-error
     {% else %}
-        border-info
+        border-warning
     {% endif %}
 ">
 <summary class="collapse-title font-medium text-md">
   <div class="w-full flex justify-between items-center">
     <span>{{ email.senderMail }}</span>
     <div class="flex gap-2 items-center">
-      <span class="badge badge-sm text-white 
-        {% if email.detection == 'legitime' %}
+      <span class="badge badge-sm text-white
+        {% if email.detection == 'LEGITIME' %}
           badge-success
-        {% elif email.detection == 'frauduleux' %}
+        {% elif email.detection == 'FRAUDULEUX' %}
           badge-error
         {% else %}
-          badge-info
+          badge-warning text-primary
         {% endif %}
       ">
         {{ email.detection or "Unknown" }}
@@ -55,7 +55,7 @@
         <p><strong>Body:</strong> {{ email.emailBody }}</p>
         <p><strong>subject:</strong> {{ email.subject or "N/A" }}</p>
         <p><strong>Detection:</strong> {{ email.detection or "Not analyzed yet" }}</p>
-        <p><strong>Notes:</strong> {{ email.notes or "—" }}</p>
+        <p><strong>Notes:</strong> {{ email.report or "—" }}</p>
         <div class="flex space-x-2 mt-4 pt-2">
         <a href="{{ url_for('view_email', email_id=email.id) }}" class="btn btn-sm btn-ghost w-24 text-center">View</a>
         <a href="{{ url_for('delete_email', email_id=email.id) }}" class="btn btn-sm btn-error w-24 text-center">Delete</a>
