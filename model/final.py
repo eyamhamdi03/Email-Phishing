@@ -9,6 +9,7 @@ log_model = joblib.load("model/Mail_model.pkl")
 vectorizer = joblib.load("model/tfidf_vectorizerMail.pkl")
 url_model = joblib.load("model/random_forest_model.pkl")
 expected_features = joblib.load("model/urls.pkl")
+
 irrelevant = ['URL', 'Domain', 'TLD', 'PathQuery', 'label']
 expected_features = [col for col in expected_features if col not in irrelevant]
 
@@ -45,7 +46,6 @@ feature_descriptions = {
     "TokenCount": "Nombre de 'tokens' ou segments dans l’URL (ex: parties séparées par '/')."
 }
 
-
 # Thresholds
 URL_STRONG_THRESHOLD = 0.7
 MID_THRESHOLD = 0.4
@@ -54,9 +54,9 @@ ALPHA = 0.5
 
 def analyze_email(subject, body):
     # --- EMAIL ANALYSIS ---
-    cleaned_text, suspicious, has_url, has_attachment, has_html, word_count, length, urls ,reply = preprocess_email(subject, body)
+    cleaned_text, suspicious, has_url, has_attachment, has_html, word_count, length, urls, reply = preprocess_email(subject, body)
     vect = vectorizer.transform([cleaned_text])
-    meta_features = np.array([[has_url, has_html, has_attachment, suspicious, length, word_count, len(urls),reply]])
+    meta_features = np.array([[has_url, has_html, has_attachment, suspicious, length, word_count, len(urls), reply]])
     X_email = hstack([vect, meta_features])
     email_proba = log_model.predict_proba(X_email)[0][1]
 
@@ -65,62 +65,68 @@ def analyze_email(subject, body):
     for url in urls:
         df = process_url(url)
         df = df[[col for col in expected_features if col in df.columns]]
-        df = df.loc[:,~df.columns.duplicated()]
+        df = df.loc[:, ~df.columns.duplicated()]
 
         if df.shape[1] == len(expected_features):
             proba = url_model.predict_proba(df)[0][1]
             link_probs.append(proba)
-            print(f"URL: {url}")
-            print(f"Colonnes dans df: {list(df.columns)}")
-            print(f"Colonnes attendues: {expected_features}")
-            print(f"Nombre colonnes df: {df.shape[1]}, attendu: {len(expected_features)}")
 
-    max_link_proba = max(link_probs) if link_probs else 0
+    url_count = len(link_probs)
+    num_phishing_urls = sum(p > URL_STRONG_THRESHOLD for p in link_probs)
+    has_phishing_url = int(num_phishing_urls > 0)
+    phishing_ratio = num_phishing_urls / url_count if url_count > 0 else 0
+    max_url_score = max(link_probs) if link_probs else 0
+    mean_url_score = float(np.mean(link_probs)) if link_probs else 0
+    std_url_score = float(np.std(link_probs)) if len(link_probs) > 1 else 0
 
     # --- DECISION LOGIC ---
-    if any(p > URL_STRONG_THRESHOLD for p in link_probs):
-        verdict = "FRAUDULEUX"
-        final_score = max_link_proba
+    if has_phishing_url:
         final_prediction = 1
-
-    else : 
-        if (any(MID_THRESHOLD <= p <= URL_STRONG_THRESHOLD for p in link_probs)):
-            final_score = ALPHA * email_proba + (1 - ALPHA) * max_link_proba
-        else : 
-            final_score = email_proba
-        
+        final_score = max_url_score
+        verdict = "FRAUDULEUX"
+    else:
+        final_score = ALPHA * email_proba + (1 - ALPHA) * phishing_ratio
         if final_score >= EMAIL_THRESHOLD:
-            verdict = "FRAUDULEUX"
             final_prediction = 1
+            verdict = "FRAUDULEUX"
         elif final_score <= MID_THRESHOLD:
-            verdict = "LÉGITIME"
             final_prediction = 0
+            verdict = "LÉGITIME"
         else:
-            verdict = "SUSPECT"
             final_prediction = -1
-    return {
-    "email_proba": email_proba,
-    "max_link_proba": max_link_proba,
-    "final_score": final_score,
-    "final_prediction": final_prediction,
-    "verdict": verdict,
-    "urls": urls,
-    "link_probs": [float(p) for p in link_probs],
-    "meta_features": {
-        "has_url": has_url,
-        "has_html": has_html,
-        "has_attachment": has_attachment,
-        "suspicious": suspicious,
-        "length": length,
-        "word_count": word_count,
-        "number_of_urls": len(urls),
-        "reply": reply
-    }
-}
+            verdict = "SUSPECT"
 
-def generate_report(results, log_model, vectorizer, url_model, expected_features, feature_descriptions):
+    return {
+        "email_proba": email_proba,
+        "max_link_proba": max_url_score,
+        "final_score": final_score,
+        "final_prediction": final_prediction,
+        "verdict": verdict,
+        "urls": urls,
+        "link_probs": [float(p) for p in link_probs],
+        "meta_features": {
+            "has_url": has_url,
+            "has_html": has_html,
+            "has_attachment": has_attachment,
+            "suspicious": suspicious,
+            "length": length,
+            "word_count": word_count,
+            "number_of_urls": url_count,
+            "reply": reply
+        },
+        "url_features": {
+            "url_count": url_count,
+            "num_phishing_urls": num_phishing_urls,
+            "has_phishing_url": has_phishing_url,
+            "phishing_ratio": phishing_ratio,
+            "max_url_score": max_url_score,
+            "mean_url_score": mean_url_score,
+            "std_url_score": std_url_score
+        }
+    }
+
+def generate_final(results):
     report_lines = []
-    
     report_lines.append("=== Rapport d'analyse global ===")
     report_lines.append(f"Probabilité phishing du mail (modèle contenu) : {results['email_proba']:.4f}")
     report_lines.append(f"Nombre d'URLs détectées dans le mail            : {len(results['urls'])}")
@@ -133,7 +139,7 @@ def generate_report(results, log_model, vectorizer, url_model, expected_features
         report_lines.append("Aucune URL détectée dans le mail.")
 
     if results['final_prediction'] == 1:
-        if results['max_link_proba'] > 0.7:
+        if results['url_features']['has_phishing_url']:
             report_lines.append("\nLa prédiction de phishing est principalement due à une ou plusieurs URLs malveillantes détectées.")
         else:
             report_lines.append("\nLa prédiction de phishing est principalement due au contenu du mail.")
@@ -142,13 +148,9 @@ def generate_report(results, log_model, vectorizer, url_model, expected_features
     else:
         report_lines.append("\nLe mail est suspect et nécessite une vérification manuelle.")
 
-    meta_features = ['has_url', 'has_html', 'has_attachment', 'suspicious', 'length', 'word_count', 'number_of_urls']
-    all_features = list(vectorizer.get_feature_names_out())+ meta_features
-
-    coefs = log_model.coef_[0]
-    feature_coefs = dict(zip(all_features, coefs))
-
-    meta_feature_descriptions = {
+    report_lines.append("\n=== Détails des caractéristiques du mail analysé ===")
+    meta = results.get('meta_features', {})
+    meta_descriptions = {
         'has_url': "Présence d'URLs dans le mail",
         'has_html': "Contenu HTML détecté",
         'has_attachment': "Pièces jointes détectées",
@@ -156,28 +158,28 @@ def generate_report(results, log_model, vectorizer, url_model, expected_features
         'length': "Longueur du mail en caractères",
         'word_count': "Nombre de mots",
         'number_of_urls': "Nombre d'URLs extraites",
-        'reply': "Indicateur de réponse "
+        'reply': "Indicateur de réponse"
     }
+
+    for key, desc in meta_descriptions.items():
+        val = meta.get(key, 'Inconnu')
+        if key in ['length', 'word_count', 'number_of_urls']:
+            val_str = str(val)
+        else:
+            val_str = "Oui" if val == 1 else "Non"
+        report_lines.append(f" - {desc} : {val_str}")
+    
+    all_features = list(vectorizer.get_feature_names_out())
+
+    coefs = log_model.coef_[0]
+    feature_coefs = dict(zip(all_features, coefs))
 
     top_pos = sorted(feature_coefs.items(), key=lambda x: x[1], reverse=True)[:10]
     top_neg = sorted(feature_coefs.items(), key=lambda x: x[1])[:10]
 
-    report_lines.append("\n=== Détails des caractéristiques du mail analysé ===")
-
-    for feat in meta_features:
-        desc = meta_feature_descriptions.get(feat, feat)
-        value = results.get('meta_features', {}).get(feat, 'Inconnu')
-
-        if feat=='word_count' or feat=='length' or feat=='number_of_urls':
-            value_str = str(value)
-        else : 
-            value_str = "Oui" if value == 1 else "Non"
-        report_lines.append(f" - {desc} : {value_str}") 
-    
     if results['final_prediction'] == 1 or results['final_prediction'] == -1:
         report_lines.append("Caractéristiques les plus indicatives d'un phishing:")
         for feat, val in top_pos:
-            desc = meta_feature_descriptions.get(feat, "")
             line = f" - {feat}"
             if desc:
                 line += f" ({desc})"
@@ -186,13 +188,22 @@ def generate_report(results, log_model, vectorizer, url_model, expected_features
     else:
         report_lines.append("\nCaractéristiques les plus indicatives d'un mail légitime :")
         for feat, val in top_neg:
-            desc = meta_feature_descriptions.get(feat, "")
             line = f" - {feat}"
             if desc:
                 line += f" ({desc})"
             report_lines.append(line)
 
-    # === URL features importance report ===
+    if len(results['urls']) >0:
+
+        report_lines.append("\n=== Statistiques détaillées sur les URLs ===")
+        url_stats = results.get("url_features", {})
+        report_lines.append(f"Nombre total d'URLs               : {url_stats.get('url_count', 0)}")
+        report_lines.append(f"Nombre d'URLs suspectes           : {url_stats.get('num_phishing_urls', 0)}")
+        report_lines.append(f"Ratio d’URLs suspectes            : {url_stats.get('phishing_ratio', 0):.2f}")
+        report_lines.append(f"Score max d’une URL               : {url_stats.get('max_url_score', 0):.4f}")
+        report_lines.append(f"Score moyen des URLs              : {url_stats.get('mean_url_score', 0):.4f}")
+        report_lines.append(f"Écart-type des scores des URLs    : {url_stats.get('std_url_score', 0):.4f}")
+
     if results['urls'] and hasattr(url_model, "feature_importances_"):
         report_lines.append("\nCaractéristiques URL les plus importantes indiquant un phishing :")
         importances = url_model.feature_importances_
@@ -204,6 +215,4 @@ def generate_report(results, log_model, vectorizer, url_model, expected_features
             report_lines.append(f"  - {f}: importance {s:.4f} — {description}")
 
     return "\n".join(report_lines)
-
-def generate_final(results):
-    return generate_report(results, log_model, vectorizer, url_model, expected_features, feature_descriptions)
+ 
