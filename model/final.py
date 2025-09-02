@@ -72,7 +72,8 @@ def analyze_email(subject, body):
             link_probs.append(proba)
 
     url_count = len(link_probs)
-    num_phishing_urls = sum(p > URL_STRONG_THRESHOLD for p in link_probs)
+    num_phishing_urls = sum(p > 0.6 for p in link_probs)
+    has_strong_url = any(p > URL_STRONG_THRESHOLD for p in link_probs)
     has_phishing_url = int(num_phishing_urls > 0)
     phishing_ratio = num_phishing_urls / url_count if url_count > 0 else 0
     max_url_score = max(link_probs) if link_probs else 0
@@ -80,12 +81,12 @@ def analyze_email(subject, body):
     std_url_score = float(np.std(link_probs)) if len(link_probs) > 1 else 0
 
     # --- DECISION LOGIC ---
-    if has_phishing_url:
+    if has_phishing_url and has_strong_url:
         final_prediction = 1
         final_score = max_url_score
         verdict = "FRAUDULEUX"
     else:
-        final_score = ALPHA * email_proba + (1 - ALPHA) * phishing_ratio
+        final_score = ALPHA * email_proba + (1 - ALPHA) * (phishing_ratio + max_url_score) / 2
         if final_score >= EMAIL_THRESHOLD:
             final_prediction = 1
             verdict = "FRAUDULEUX"

@@ -1,18 +1,20 @@
 {% extends 'base.html' %}
 
 {% block head %}
-  <title>Fraud Detection</title>
+  <title>Détection de Fraude</title>
 {% endblock %}
 
 {% block body %}
 
 <div class="flex justify-center m-10 px-4">
   <div class="card bg-base-100 shadow-md p-6 w-full max-w-2xl">
-    <h2 class="text-center text-lg rubik-mono-one-light mb-4">Compose Email for Fraud Detection</h2>
+    <h2 class="text-center text-lg rubik-mono-one-light mb-4">
+      Rédiger un e-mail pour détection de fraude
+    </h2>
 
     <form action="/analyze" method="post" class="space-y-4">
 
-      <!-- Sender Email -->
+      <!-- Email de l'expéditeur -->
       <label class="input validator w-full">
         <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
           <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
@@ -20,30 +22,31 @@
             <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
           </g>
         </svg>
-        <input type="email" name="senderMail" placeholder="Sender Email Address" required />
+        <input type="email" name="senderMail" placeholder="Adresse e-mail de l'expéditeur" required />
       </label>
-      <div class="validator-hint hidden">Enter valid email address</div>
+      <div class="validator-hint hidden">Veuillez entrer une adresse e-mail valide</div>
 
-      <!-- Subject -->
+      <!-- Sujet -->
       <label class="input flex items-center w-full">
-        <input type="text" name="subject" class="grow" placeholder="Email Subject" />
-        <span class="badge badge-outline badge-xs ml-2">Optional</span>
+        <input type="text" name="subject" class="grow" placeholder="Sujet de l'e-mail" />
+        <span class="badge badge-outline badge-xs ml-2">Optionnel</span>
       </label>
 
-      <!-- Email Body -->
+      <!-- Corps de l'e-mail -->
+      <textarea
+        name="emailBody"
+        id="emailBody"
+        rows="10"
+        placeholder="Tapez ou collez ici le contenu de l'e-mail..."
+        class="textarea textarea-bordered w-full resize-y"
+        required
+      ></textarea>
 
-        <textarea
-          name="emailBody"
-          id="emailBody"
-          rows="10"
-          placeholder="Type or paste the email content here..."
-          class="textarea textarea-bordered w-full resize-y"
-          required
-        ></textarea>
-
-      <!-- Submit -->
+      <!-- Soumettre -->
       <div class="pt-4 flex justify-center">
-        <button type="submit" class="btn btn-primary max-w-60 w-full ">Submit for Analysis</button>
+        <button type="submit" class="btn btn-primary max-w-60 w-full">
+          Soumettre pour analyse
+        </button>
       </div>
 
     </form>

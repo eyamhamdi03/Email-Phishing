@@ -1,49 +1,49 @@
 {% extends 'base.html' %}
 
 {% block head %}
-  <title>Email Analysis Report</title>
+  <title>Rapport d'Analyse d'Email</title>
 {% endblock %}
 
 {% block body %}
 <div class="flex justify-center py-10 px-4">
   <div class="card bg-base-100 shadow-2xl w-full max-w-4xl p-8 space-y-8">
 
-    <!-- Title -->
+    <!-- Titre -->
     <div class="text-center">
-      <h2 class="text-3xl font-extrabold tracking-tight text-white">Email Fraud Detection Report</h2>
-      <p class="text-sm text-gray-400 mt-1">Detailed analysis and prediction outcome</p>
+      <h2 class="text-3xl font-extrabold tracking-tight text-white">Rapport de Détection de Fraude</h2>
+      <p class="text-sm text-gray-400 mt-1">Analyse détaillée et résultat de la prédiction</p>
     </div>
 
-    <!-- Metadata -->
+    <!-- Métadonnées -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-base-200 rounded-lg p-4">
-      <div><strong>From:</strong> <span class="text-white">{{ sender }}</span></div>
+      <div><strong>Expéditeur :</strong> <span class="text-white">{{ sender }}</span></div>
       {% if subject %}
-      <div><strong>Subject:</strong> <span class="text-white">{{ subject }}</span></div>
+      <div><strong>Objet :</strong> <span class="text-white">{{ subject }}</span></div>
       {% endif %}
-      <div><strong>Contains URL:</strong> {{ 'Yes' if contains_url else 'No' }}</div>
-      <div><strong>Score:</strong> {{ probability | round(3) if probability is not none else "N/A" }}</div>
+      <div><strong>Contient une URL :</strong> {{ 'Oui' if contains_url else 'Non' }}</div>
+      <div><strong>Score :</strong> {{ probability | round(3) if probability is not none else "N/A" }}</div>
     </div>
 
-    <!-- Verdict Section -->
+    <!-- Verdict -->
     <div class="rounded-lg p-4 {{ 
         'bg-error/20 border-l-4 border-error text-error' if is_fraud else 
         'bg-success/20 border-l-4 border-success text-success' if final_prediction == 0 else 
         'bg-warning/20 border-l-4 border-warning text-warning' 
       }}">
-      <strong>Prediction:</strong>
-      {{ 'FRAUDULEUX' if is_fraud else 'LÉGITIME' if final_prediction == 0 else 'SUSPECIOUS (manual review)' }}
+      <strong>Prédiction :</strong>
+      {{ 'FRAUDULEUX' if is_fraud else 'LÉGITIME' if final_prediction == 0 else 'SUSPECT (à vérifier manuellement)' }}
     </div>
 
-    <!-- Original Email -->
+    <!-- Contenu de l'email -->
     <div>
-      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">Original Email Body</h3>
+      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">Corps de l'e-mail original</h3>
       <div class="bg-base-200 p-4 rounded text-sm whitespace-pre-wrap text-white shadow-inner">{{ body }}</div>
     </div>
 
-    <!-- Extracted URLs -->
+    <!-- URLs extraites -->
     {% if urls and urls|length > 0 %}
     <div>
-      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">🔗 Extracted URLs</h3>
+      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">🔗 URLs extraites</h3>
       <ul class="list-disc list-inside text-sm space-y-1">
         {% for url in urls %}
           <li class="break-all text-white">{{ url }}</li>
@@ -52,17 +52,17 @@
     </div>
     {% endif %}
 
-    <!-- Full Report -->
+    <!-- Rapport détaillé -->
     {% if report %}
     <div>
-      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2"> Detailed Report</h3>
+      <h3 class="text-xl font-bold border-b border-base-300 pb-2 mb-2">Rapport détaillé</h3>
       <pre class="bg-base-200 p-4 rounded text-sm whitespace-pre-wrap text-white">{{ report }}</pre>
     </div>
     {% endif %}
 
-    <!-- Back -->
+    <!-- Retour -->
     <div class="text-center pt-4">
-      <a href="/" class="btn btn-outline btn-wide">← Back to History</a>
+      <a href="/" class="btn btn-outline btn-wide">← Retour à l'historique</a>
     </div>
 
   </div>

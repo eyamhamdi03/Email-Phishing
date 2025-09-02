@@ -1,67 +1,68 @@
 {% extends 'base.html' %}
 
 {% block head %}
-    <title>History</title>
+    <title>Historique</title>
 {% endblock %}
 
 {% block body %}
 
 <div class="container items-center justify-center">
 <h2 class="text-3xl font-extrabold tracking-tight text-white text-center">
-  Email History
+  Historique des e-mails
 </h2>
 
-    <br>
-    <ul class="list bg-base-100 rounded-box p-4 space-y-2">
+<br>
+
+<ul class="list bg-base-100 rounded-box p-4 space-y-2">
   {% for email in emails %}
   <li>
-<details class="collapse collapse-arrow bg-base-200 shadow-none border-l-4 
-    {% if email.detection == 'LÉGITIME' %}
-        border-success
-    {% elif email.detection == 'FRAUDULEUX' %}
-        border-error
-    {% else %}
-        border-warning
-    {% endif %}
-">
-<summary class="collapse-title font-medium text-md">
-  <div class="w-full flex justify-between items-center">
-    <span>{{ email.senderMail }}</span>
-    <div class="flex gap-2 items-center">
-      <span class="badge badge-sm text-white
+    <details class="collapse collapse-arrow bg-base-200 shadow-none border-l-4 
         {% if email.detection == 'LÉGITIME' %}
-          badge-success
+            border-success
         {% elif email.detection == 'FRAUDULEUX' %}
-          badge-error
+            border-error
         {% else %}
-          badge-warning text-primary
+            border-warning
         {% endif %}
-      ">
-        {{ email.detection or "Unknown" }}
-      </span>
+    ">
+      <summary class="collapse-title font-medium text-md">
+        <div class="w-full flex justify-between items-center">
+          <span>{{ email.senderMail }}</span>
+          <div class="flex gap-2 items-center">
+            <span class="badge badge-sm text-white
+              {% if email.detection == 'LÉGITIME' %}
+                badge-success
+              {% elif email.detection == 'FRAUDULEUX' %}
+                badge-error
+              {% else %}
+                badge-warning text-primary
+              {% endif %}
+            ">
+              {{ email.detection or "Inconnu" }}
+            </span>
             <span class="badge badge-outline badge-sm whitespace-nowrap">
-        {{ email.date_created.strftime('%Y-%m-%d') }}
-      </span>
-    </div>
-  </div>
-</summary>
-
-
+              {{ email.date_created.strftime('%Y-%m-%d') }}
+            </span>
+          </div>
+        </div>
+      </summary>
 
       <div class="collapse-content text-sm space-y-2">
-        <p><strong>Body:</strong> {{ email.emailBody }}</p>
-        <p><strong>subject:</strong> {{ email.subject or "N/A" }}</p>
+        <p><strong>Corps :</strong> {{ email.emailBody }}</p>
+        <p><strong>Objet :</strong> {{ email.subject or "N/A" }}</p>
         <div class="flex space-x-2 mt-4 pt-2">
-        <a href="{{ url_for('view_email', email_id=email.id) }}" class="btn btn-sm btn-ghost text-center border-white">full report</a>
-        <a href="{{ url_for('delete_email', email_id=email.id) }}" class="btn btn-sm btn-error w-24 text-center">Delete</a>
+          <a href="{{ url_for('view_email', email_id=email.id) }}" class="btn btn-sm btn-ghost text-center border-white">Voir le rapport complet</a>
+          <a href="{{ url_for('delete_email', email_id=email.id) }}" class="btn btn-sm btn-error w-24 text-center">Supprimer</a>
         </div>
       </div>
     </details>
   </li>
   {% endfor %}
+
   {% if not emails %}
-  <li class="p-4 text-center text-gray-500">No emails found.</li>
+  <li class="p-4 text-center text-gray-500">Aucun e-mail trouvé.</li>
   {% endif %}
 </ul>
 </div>
+
 {% endblock %}
